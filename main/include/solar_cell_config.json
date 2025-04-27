@@ -11,7 +11,7 @@
       "model": "solarCellState", 
       "state": { "sigma":0.0,"solar_mode" : true,  "voltage" : 0.0, "total_power" : 0.0}, 
       "neighborhood": [
-        { "type": "moore", "range": 1, "dimensions": [0, 1] }
+        { "type": "von_neumann", "range": 1}
       ],
       "cell_map":[
         [[0,0], [0,1], [0,2], [0,3], [0,4], [0,5]], 

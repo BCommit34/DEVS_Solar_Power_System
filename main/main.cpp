@@ -26,6 +26,7 @@
 #include <iostream>
 #include <sstream> 
 #include "include/solar_panel_model.hpp" 
+#include "include/top.hpp" 
 
 #include "cadmium/modeling/devs/coupled.hpp"
 #include <vector>
@@ -36,64 +37,26 @@ using namespace cadmium::celldevs;
 using namespace cadmium; 
 
 extern "C" {
-	static int* return_index(std::string str){
-		int* rt_index = (int*)malloc(sizeof(int));
-		int i = 0;
-
-		std::string str_digits = str.substr(1,str.length()-2);
-
-		std::stringstream ss(str_digits);
-		std::string token;
-		while(std::getline(ss,token,',')){
-			rt_index[i] = std::stoi(token);
-			i++;
-		}
-
-		return rt_index;
-	}
-
-	std::shared_ptr<GridCell<solarCellState, double>> addGridCell( const coordinates & cellId,const std::shared_ptr<const GridCellConfig<solarCellState, double>>& cellConfig){ 
-		auto cellModel = cellConfig->cellModel;
-		if(cellModel == "solarCellState") { 
-			return std::make_shared<solar_panel_model>(cellId, cellConfig);   
-		}else{ 
-			throw std::runtime_error("Unknown cell model: " + cellModel);
-		} 
-	}
 
 	int main(int argc, char ** argv) { 
-		try {
-			// Your JSON parsing code here
-			std::ifstream json_file("./main/include/solar_cell_config.json");
-			nlohmann::json json_data; 
-			json_file >> json_data;
-			
-		  } catch (nlohmann::json::parse_error& e) {
-			std::cerr << "JSON parse error: " << e.what() << std::endl;
-		  } catch (nlohmann::json::out_of_range& e) {
-			std::cerr << "JSON out of range error: " << e.what() << std::endl;
-		  }
-
-		auto model = std::make_shared<GridCellDEVSCoupled<solarCellState, double>>("solar_panel_model", addGridCell,"./main/include/solar_cell_config.json");
-		model->buildModel();
-		
+		auto model = std::make_shared<top_coupled> ("top");
 		auto rootCoordinator = RootCoordinator(model); 
 		rootCoordinator.setLogger<CSVLogger>("grid_log.txt", "/"); 
 		
 		rootCoordinator.start(); 
-		rootCoordinator.simulate(24.0);
+		rootCoordinator.simulate(2952.0);
 		rootCoordinator.stop(); 
 		
-		
-
-		//*********************************CREATE LOG FILE******************************/
+		//*********************************CREATE LOG FILE AND ATOMIC MODEL FILE******************************/
 		std::string token_term;
 		std::ifstream io_csv_file("grid_log.txt");
 		std::ofstream io_log_file;
 		std::ofstream io_log_file2;
+		std::ofstream io_log_file3;
 
 		io_log_file.open("simulation_voltage.log",std::ios::trunc);
 		io_log_file2.open("simulation_power.log",std::ios::trunc);
+		io_log_file3.open("simulation_atomic_models.log",std::ios::trunc);
 
 		io_log_file << "Mensaje I / 00:00:00:000 / Root(00) para top(01)"<<std::endl;
 		io_log_file << "Mensaje I / 00:00:00:000 / top(01) para panel(02)"<<std::endl;
@@ -147,61 +110,65 @@ extern "C" {
 				int i_term = 0;
 				std::string tmp_token_csv(token_csv);
                 std::stringstream lineStream(tmp_token_csv);
-				
-                while (std::getline(lineStream, token_term, '/')) {
-					switch(i_term){
-						case 0:{
-							time={};
-							time<<"00:00:"<< std::setw(2) << std::setfill('0')<< std::stoi(token_term)+1<<":000";
-							break;
-						}
-						case 2:{
+				if (tmp_token_csv.find("Model") != std::string::npos){
+					io_log_file3<<tmp_token_csv<<std::endl;
+				}else{
+					while (std::getline(lineStream, token_term, '/')) {
+						switch(i_term){
+							case 0:{
+								time={};
+								time<<"00:00:"<< std::setw(2) << std::setfill('0')<< std::stoi(token_term)+1<<":000";
+								break;
+							}
+							case 2:{
 
-							operation={};
-							int* cell_index = return_index(token_term);
-							operation<<"panel(" << cell_index[1] <<","<< cell_index[0] <<")("<< std::setw(2) << std::setfill('0')<<((cell_index[0]*10)+cell_index[1]+3)<<")" ;
-							break;
-						}
-						case 3:{
-							prefix={};
-							port={};
-							if (token_term == ""){
-								prefix<<"Mensaje D";
-								port<<"...";
-							}else{
-								prefix<<"Mensaje Y";
-								port<<"out /";
+								operation={};
+								int* cell_index = return_index(token_term);
+								operation<<"panel(" << cell_index[1] <<","<< cell_index[0] <<")("<< std::setw(2) << std::setfill('0')<<((cell_index[0]*10)+cell_index[1]+3)<<")" ;
+								break;
 							}
-							break;
-						}
-						case 4:{
-							status={};
-							if (token_term.compare("Mensaje D") == 0){
-								status<< "para panel(02)";
-							}else{
-								status<<" "<< token_term << " para panel(02)";
+							case 3:{
+								prefix={};
+								port={};
+								if (token_term == ""){
+									prefix<<"Mensaje D";
+									port<<"...";
+								}else{
+									prefix<<"Mensaje Y";
+									port<<"out /";
+								}
+								break;
 							}
-							break;
-						}
-						case 5:{
-							power={};
-							if (token_term.compare("Mensaje D") == 0){
-								power<< "para panel(02)";
-							}else{
-								power<<" "<< token_term << " para panel(02)";
+							case 4:{
+								status={};
+								if (token_term.compare("Mensaje D") == 0){
+									status<< "para panel(02)";
+								}else{
+									status<<" "<< token_term << " para panel(02)";
+								}
+								break;
 							}
-							break;
+							case 5:{
+								power={};
+								if (token_term.compare("Mensaje D") == 0){
+									power<< "para panel(02)";
+								}else{
+									power<<" "<< token_term << " para panel(02)";
+								}
+								break;
+							}
 						}
+						i_term++;
 					}
-					i_term++;
-                }
-				io_log_file<<prefix.str()<<" / "<<time.str()<< " / "<<operation.str()<<" / "<<port.str()<<" "<<status.str()<<std::endl;
-				io_log_file2<<prefix.str()<<" / "<<time.str()<< " / "<<operation.str()<<" / "<<port.str()<<" "<<power.str()<<std::endl;
+					io_log_file<<prefix.str()<<" / "<<time.str()<< " / "<<operation.str()<<" / "<<port.str()<<" "<<status.str()<<std::endl;
+					io_log_file2<<prefix.str()<<" / "<<time.str()<< " / "<<operation.str()<<" / "<<port.str()<<" "<<power.str()<<std::endl;
+				}
 				token_csv = std::strtok(NULL, "\n");
 			}
 		}
 		io_csv_file.close();
 		io_log_file.close();
 		io_log_file2.close();
+		io_log_file3.close();
 	} 
 }

@@ -8,6 +8,9 @@ The author would like to acknowledge [@Sasisekhar](https://github.com/Sasisekhar
 
 Link : https://github.com/Sasisekhar/blank_project_rt
 
+The author would like to acknowledge the data set provided by the contributor Manvi Mishra fro providing a dataset detailing Irradiance and Temperature in Dehli, India from May 1st, 2021 to September 4th, 2021. The data was used to create the data file climate_dataset.csv 
+
+Link : https://data.mendeley.com/datasets/9jcxhpznyj/1 
 
 ## Script Writer
 Name : Brigitte H.
@@ -22,10 +25,18 @@ Cell_DEVS model
  - [solar_cell_config.json](https://linktodocumentation) : Json file containing the configuration details of the solar panel used to create the panel_model object.
 - [main.hpp](https://linktodocumentation) : The main script running the simmulation and generating the DEVS Simulation files
 
+Atomic DEVS model
+ - [solar_panel_atomic_model.hpp](https://linktodocumentation) : The atomic model used to communicate with the Sun atomic model and the MPPT atomic model.
+ - [sun_model.hpp](https://linktodocumentation) : The atomic model manage the weather conditions data collected from the file climate_dataset.csv. The model communicate the weather condition to the solaratomic model via the ports.
+ - [mppt_model.hpp](https://linktodocumentation) : Collect the output data from the solar atomic model. 
+
+
 
 DEVS Simulation : Additional file for ARSLabs (DEVS Web Viewer)
 - [simulation_power.log](https://linktodocumentation): Log file containing the data points collected during the simulation for the power generation
 - [simulation_voltage.log](https://linktodocumentation): Log file containing the data points collected during the simulation for the voltage change across the cells
+- [simulation_atomic_models.log](https://linktodocumentation): Log file containing the output from the atomic models.
+- [climate_dataset.csv](https://linktodocumentation): The CSV file was derived from a data set containing weather conditions in Dehli, India from May 1st 2021 to Septembe 4th 2021. 
 
 
 ## Acknowledgements
