@@ -13,7 +13,7 @@ Link : https://data.mendeley.com/datasets/9jcxhpznyj/1
 ## Script Writer
 Name : Brigitte H.
 
-Github: [https://github.com/BCommit34/CellDEVS_Solar_Panel](https://github.com/BCommit34/DEVS_Solar_Power_System)
+Github: [https://github.com/BCommit34/DEVS_Solar_Power_System](https://github.com/BCommit34/DEVS_Solar_Power_System)
 
 
 ## Documentations for CellDEVS_Solar_Panel
